@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Password Strength Checker</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #232526, #414345);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      background-color: #2c2f33;
+      padding: 30px 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      max-width: 500px;
+      width: 100%;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #00ffcc;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      margin-bottom: 20px;
+      outline: none;
+      background-color: #3b3f44;
+      color: #fff;
+    }
+
+    .result {
+      background-color: #3b3f44;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 15px;
+      line-height: 1.6;
+    }
+
+    .strength-bar {
+      height: 10px;
+      border-radius: 6px;
+      margin-top: 10px;
+      background-color: #ddd;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    .bar-0 { background-color: red; }
+    .bar-1 { background-color: orange; }
+    .bar-2 { background-color: yellow; }
+    .bar-3 { background-color: #9acd32; }
+    .bar-4 { background-color: #00ffcc; }
+
+    @media (max-width: 500px) {
+      .container {
+        padding: 25px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 Password Strength Checker</h1>
+    <label for="password">Enter your password:</label>
+    <input type="password" id="password" placeholder="e.g. MyP@ssw0rd123" oninput="checkStrength(this.value)" />
+    
+    <div class="strength-bar">
+      <div id="bar-fill" class="bar-fill"></div>
+    </div>
+
+    <div id="result" class="result">
+      Start typing your password...
+    </div>
+  </div>
+
+  <script>
+    async function checkStrength(password) {
+      const response = await fetch('/check', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ password })
+      });
+
+      const data = await response.json();
+      const result = document.getElementById('result');
+      const bar = document.getElementById('bar-fill');
+
+      let colorClass = 'bar-' + data.score;
+      bar.className = 'bar-fill ' + colorClass;
+      bar.style.width = (data.score + 1) * 20 + '%';
+
+      result.innerHTML = `
+        <strong>Score:</strong> ${data.score}/4 <br>
+        <strong>Crack Time:</strong> ${data.crack_time} <br>
+        <strong>Warning:</strong> ${data.warning || 'None'} <br>
+        <strong>Suggestions:</strong> ${data.suggestions.length > 0 ? data.suggestions.join(', ') : 'None'}
+      `;
+    }
+  </script>
+</body>
+</html>
